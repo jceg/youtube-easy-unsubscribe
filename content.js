@@ -55,24 +55,48 @@ async function unsubscribeFromChannel(channelElement) {
     }
   }
 
-async function unsubscribeSelected() {
-  for (const channelElement of selectedChannels) {
-    await unsubscribeFromChannel(channelElement);
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait between unsubscribes
+  async function unsubscribeSelected() {
+    const totalCount = selectedChannels.size;
+    let progress = 0;
+    
+    // Show progress
+    chrome.runtime.sendMessage({
+      action: 'updateProgress',
+      data: { current: progress, total: totalCount, show: true }
+    });
+  
+    for (const channelElement of selectedChannels) {
+      await unsubscribeFromChannel(channelElement);
+      progress++;
+      
+      // Update progress
+      chrome.runtime.sendMessage({
+        action: 'updateProgress',
+        data: { current: progress, total: totalCount }
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    // Show completion
+    chrome.runtime.sendMessage({ action: 'showCompletion' });
+    
+    selectedChannels.clear();
+    toggleSelectionMode();
   }
-  selectedChannels.clear();
-  toggleSelectionMode();
-}
 
+// Update the message listener in content.js
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'toggleMode') {
       toggleSelectionMode();
+      sendResponse({ success: true });
     } else if (message.action === 'unsubscribeSelected') {
       unsubscribeSelected();
+      sendResponse({ success: true });
     } else if (message.action === 'getSelectedCount') {
       sendResponse({ count: selectedChannels.size });
     }
-    return true; // Important for async response
+    return false; // Don't keep the message channel open
   });
 
 // Add checkboxes when new content is loaded

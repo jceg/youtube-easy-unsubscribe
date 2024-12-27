@@ -1,7 +1,7 @@
 .easy-unsub-checkbox {
     position: absolute;
     top: 50%;
-    left: -40px;  /* Changed from 10px to -40px to position it outside the card */
+    left: -40px;
     transform: translateY(-50%);
     width: 24px;
     height: 24px;
@@ -11,36 +11,28 @@
     margin: 0;
     padding: 0;
     
-    /* Modern checkbox styling */
+    /* Hide the default checkbox */
     appearance: none;
     -webkit-appearance: none;
-    background-color: #fff;
-    border: 2px solid #065fd4;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.easy-unsub-checkbox::before {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23065fd4" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
     transition: all 0.2s ease-in-out;
 }
 
-.easy-unsub-checkbox:checked {
-    background-color: #065fd4;
-    border-color: #065fd4;
-}
-
-.easy-unsub-checkbox:checked::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 45%;
-    transform: translate(-50%, -50%) rotate(45deg);
-    width: 6px;
-    height: 12px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
+.easy-unsub-checkbox:checked::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ff0000" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
+    transform: scale(1.1);
 }
 
 .easy-unsub-checkbox:hover {
-    border-color: #065fd4;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transform: translateY(-50%) scale(1.1);
+    transition: transform 0.2s ease;
 }
 
 /* Add margin to the channel container to make space for checkbox */
@@ -62,4 +54,42 @@ ytd-channel-renderer {
 .easy-unsub-checkbox[style*="block"] {
     opacity: 1;
     transform: translateY(-50%) scale(1);
+}
+
+/* Additional styles for better visibility */
+.easy-unsub-checkbox:focus {
+    outline: none;
+}
+
+.easy-unsub-checkbox:focus::before {
+    box-shadow: 0 0 0 2px rgba(6, 95, 212, 0.2);
+    border-radius: 4px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .easy-unsub-checkbox::before {
+        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ffffff" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
+    }
+    
+    .easy-unsub-checkbox:checked::before {
+        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ff0000" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
+    }
+}
+
+/* Smooth transitions */
+.easy-unsub-checkbox::before,
+.easy-unsub-checkbox:checked::before {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ensure proper positioning in all YouTube layouts */
+ytd-channel-renderer {
+    position: relative !important;
+}
+
+/* Fix for potential YouTube layout changes */
+#content-section.style-scope.ytd-channel-renderer {
+    display: flex !important;
+    align-items: center !important;
 }

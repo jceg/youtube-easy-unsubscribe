@@ -38,3 +38,30 @@ function createRipple(event) {
       }
     });
   });
+
+
+  // Add to your existing popup.js
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'updateProgress') {
+      const progressContainer = document.querySelector('.progress-container');
+      const progressFill = document.querySelector('.progress-fill');
+      const progressCount = document.getElementById('progress-count');
+      const totalCount = document.getElementById('total-count');
+      
+      if (message.data.show) {
+        progressContainer.style.display = 'block';
+      }
+      
+      progressCount.textContent = message.data.current;
+      totalCount.textContent = message.data.total;
+      progressFill.style.width = `${(message.data.current / message.data.total) * 100}%`;
+    } else if (message.action === 'showCompletion') {
+      document.querySelector('.progress-container').style.display = 'none';
+      document.querySelector('.completion-message').style.display = 'block';
+      
+      // Hide completion message after 3 seconds
+      setTimeout(() => {
+        document.querySelector('.completion-message').style.display = 'none';
+      }, 3000);
+    }
+  });
