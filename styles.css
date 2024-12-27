@@ -1,0 +1,60 @@
+.easy-unsub-checkbox {
+    position: absolute;
+    top: 50%;
+    left: -30px;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    z-index: 9999;
+    cursor: pointer;
+    display: none;
+    
+    /* Modern checkbox styling */
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #fff;
+    border: 2px solid #065fd4;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.2s ease-in-out;
+}
+
+.easy-unsub-checkbox:checked {
+    background-color: #065fd4;
+    border-color: #065fd4;
+}
+
+.easy-unsub-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 4px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.easy-unsub-checkbox:hover {
+    border-color: #065fd4;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* Ensure proper positioning context */
+#content-section.style-scope.ytd-channel-renderer {
+    position: relative !important;
+    padding-left: 40px !important;
+}
+
+/* Animation for checkbox appearance */
+.easy-unsub-checkbox {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.8);
+    transition: all 0.3s ease-in-out;
+}
+
+.easy-unsub-checkbox[style*="block"] {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+}

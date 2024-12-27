@@ -1,0 +1,23 @@
+{
+    "manifest_version": 3,
+    "name": "YouTube Easy Unsubscribe",
+    "version": "1.0",
+    "description": "Easily unsubscribe from YouTube channels with checkboxes",
+    "permissions": [
+      "activeTab",
+      "scripting"
+    ],
+    "host_permissions": [
+      "https://www.youtube.com/*"
+    ],
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "content_scripts": [
+      {
+        "matches": ["https://www.youtube.com/*"],
+        "js": ["content.js"],
+        "css": ["styles.css"]
+      }
+    ]
+  }
