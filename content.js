@@ -64,14 +64,16 @@ async function unsubscribeSelected() {
   toggleSelectionMode();
 }
 
-// Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'toggleMode') {
-    toggleSelectionMode();
-  } else if (message.action === 'unsubscribeSelected') {
-    unsubscribeSelected();
-  }
-});
+    if (message.action === 'toggleMode') {
+      toggleSelectionMode();
+    } else if (message.action === 'unsubscribeSelected') {
+      unsubscribeSelected();
+    } else if (message.action === 'getSelectedCount') {
+      sendResponse({ count: selectedChannels.size });
+    }
+    return true; // Important for async response
+  });
 
 // Add checkboxes when new content is loaded
 const observer = new MutationObserver(() => {

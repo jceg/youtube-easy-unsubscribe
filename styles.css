@@ -1,13 +1,15 @@
 .easy-unsub-checkbox {
     position: absolute;
     top: 50%;
-    left: -30px;
+    left: -40px;  /* Changed from 10px to -40px to position it outside the card */
     transform: translateY(-50%);
     width: 24px;
     height: 24px;
     z-index: 9999;
     cursor: pointer;
     display: none;
+    margin: 0;
+    padding: 0;
     
     /* Modern checkbox styling */
     appearance: none;
@@ -27,13 +29,13 @@
 .easy-unsub-checkbox:checked::after {
     content: '';
     position: absolute;
-    left: 8px;
-    top: 4px;
+    left: 50%;
+    top: 45%;
+    transform: translate(-50%, -50%) rotate(45deg);
     width: 6px;
     height: 12px;
     border: solid white;
     border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
 }
 
 .easy-unsub-checkbox:hover {
@@ -41,10 +43,13 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
-/* Ensure proper positioning context */
+/* Add margin to the channel container to make space for checkbox */
+ytd-channel-renderer {
+    margin-left: 40px !important;
+}
+
 #content-section.style-scope.ytd-channel-renderer {
     position: relative !important;
-    padding-left: 40px !important;
 }
 
 /* Animation for checkbox appearance */
