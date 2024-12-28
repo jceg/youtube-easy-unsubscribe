@@ -30,7 +30,7 @@ function createRipple(event) {
     chrome.tabs.sendMessage(tab.id, { action: 'unsubscribeSelected' });
   });
   
-  // Update selected count
+  // Update count when popup opens
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { action: 'getSelectedCount' }, (response) => {
       if (response && response.count !== undefined) {
@@ -38,11 +38,12 @@ function createRipple(event) {
       }
     });
   });
-
-
-  // Add to your existing popup.js
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'updateProgress') {
+  
+  // Listen for count updates
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'updateCount') {
+      document.getElementById('selectedCount').textContent = message.count;
+    } else if (message.action === 'updateProgress') {
       const progressContainer = document.querySelector('.progress-container');
       const progressFill = document.querySelector('.progress-fill');
       const progressCount = document.getElementById('progress-count');
@@ -59,9 +60,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       document.querySelector('.progress-container').style.display = 'none';
       document.querySelector('.completion-message').style.display = 'block';
       
-      // Hide completion message after 3 seconds
       setTimeout(() => {
         document.querySelector('.completion-message').style.display = 'none';
       }, 3000);
     }
+    return true;
   });
