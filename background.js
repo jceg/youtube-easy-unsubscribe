@@ -1,6 +1,22 @@
 let unsubscribeQueue = [];
 let isProcessing = false;
 
+async function sendMessageToPopup(message) {
+    try {
+        const views = chrome.extension.getViews({ type: 'popup' });
+        if (views.length > 0) {
+            await chrome.runtime.sendMessage(message);
+        } else {
+            // Store completion state if popup is closed
+            if (message.action === 'showCompletion') {
+                chrome.storage.local.set({ completionPending: true });
+            }
+        }
+    } catch (error) {
+        console.log('Error sending message to popup:', error);
+    }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'saveForLater') {
         unsubscribeQueue = message.channels;
@@ -13,11 +29,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({success: true});
     } else if (message.action === 'updateProgress') {
         // Forward progress updates to popup
-        chrome.runtime.sendMessage(message);
+        sendMessageToPopup(message);
         sendResponse({success: true});
     } else if (message.action === 'showCompletion') {
         // Forward completion message to popup
-        chrome.runtime.sendMessage(message);
+        sendMessageToPopup(message);
         sendResponse({success: true});
     }
     return true;
@@ -30,7 +46,7 @@ async function processQueue() {
     const totalCount = unsubscribeQueue.length;
     let progress = 0;
 
-    chrome.runtime.sendMessage({
+    await sendMessageToPopup({
         action: 'updateProgress',
         data: { current: progress, total: totalCount, show: true }
     });
@@ -58,7 +74,7 @@ async function processQueue() {
             await chrome.tabs.remove(tab.id);
             
             progress++;
-            chrome.runtime.sendMessage({
+            await sendMessageToPopup({
                 action: 'updateProgress',
                 data: { current: progress, total: totalCount }
             });
@@ -72,7 +88,7 @@ async function processQueue() {
 
     unsubscribeQueue = [];
     chrome.storage.local.set({ unsubscribeQueue });
-    chrome.runtime.sendMessage({ action: 'showCompletion' });
+    await sendMessageToPopup({ action: 'showCompletion' });
     isProcessing = false;
 }
 

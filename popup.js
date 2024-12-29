@@ -49,54 +49,93 @@ function showCompletion() {
 }
 
 async function checkSavedChannels() {
-  const response = await chrome.runtime.sendMessage({ action: 'getQueue' });
-  if (response.queue && response.queue.length > 0) {
-      document.querySelector('.saved-channels').style.display = 'block';
-      document.getElementById('savedCount').textContent = response.queue.length;
+  try {
+      const response = await chrome.runtime.sendMessage({ action: 'getQueue' });
+      if (response.queue && response.queue.length > 0) {
+          document.querySelector('.saved-channels').style.display = 'block';
+          document.getElementById('savedCount').textContent = response.queue.length;
+      }
+  } catch (error) {
+      console.log('Error checking saved channels:', error);
   }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
   checkSavedChannels();
   
-  // Check for ongoing unsubscribe progress
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  chrome.tabs.sendMessage(tab.id, { action: 'getProgress' }, (response) => {
-      if (response && response.isUnsubscribing) {
-          updateProgressUI({
-              show: true,
-              current: response.current,
-              total: response.total
-          });
+  // Check for pending completion message
+  chrome.storage.local.get(['completionPending'], (result) => {
+      if (result.completionPending) {
+          showCompletion();
+          chrome.storage.local.remove('completionPending');
       }
   });
+  
+  try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab) {
+          chrome.tabs.sendMessage(tab.id, { action: 'getProgress' }, (response) => {
+              if (chrome.runtime.lastError) {
+                  console.log('Tab not ready:', chrome.runtime.lastError);
+                  return;
+              }
+              if (response && response.isUnsubscribing) {
+                  updateProgressUI({
+                      show: true,
+                      current: response.current,
+                      total: response.total
+                  });
+              }
+          });
+      }
+  } catch (error) {
+      console.log('Error checking progress:', error);
+  }
 });
 
 document.getElementById('toggleMode').addEventListener('click', async (e) => {
   createRipple(e);
-  const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-  chrome.tabs.sendMessage(tab.id, {action: 'toggleMode'});
+  try {
+      const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+      chrome.tabs.sendMessage(tab.id, {action: 'toggleMode'});
+  } catch (error) {
+      console.log('Error toggling mode:', error);
+  }
 });
 
 document.getElementById('unsubscribe').addEventListener('click', async (e) => {
   createRipple(e);
-  const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-  chrome.tabs.sendMessage(tab.id, {action: 'unsubscribeSelected'});
+  try {
+      const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+      chrome.tabs.sendMessage(tab.id, {action: 'unsubscribeSelected'});
+  } catch (error) {
+      console.log('Error starting unsubscribe:', error);
+  }
 });
 
 document.getElementById('processSaved').addEventListener('click', async (e) => {
   createRipple(e);
-  await chrome.runtime.sendMessage({ action: 'processSaved' });
-  document.querySelector('.saved-channels').style.display = 'none';
+  try {
+      await chrome.runtime.sendMessage({ action: 'processSaved' });
+      document.querySelector('.saved-channels').style.display = 'none';
+  } catch (error) {
+      console.log('Error processing saved channels:', error);
+  }
 });
 
 // Update count when popup opens
 chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-  chrome.tabs.sendMessage(tabs[0].id, {action: 'getSelectedCount'}, (response) => {
-      if (response && response.count !== undefined) {
-          document.getElementById('selectedCount').textContent = response.count;
-      }
-  });
+  if (tabs[0]) {
+      chrome.tabs.sendMessage(tabs[0].id, {action: 'getSelectedCount'}, (response) => {
+          if (chrome.runtime.lastError) {
+              console.log('Tab not ready:', chrome.runtime.lastError);
+              return;
+          }
+          if (response && response.count !== undefined) {
+              document.getElementById('selectedCount').textContent = response.count;
+          }
+      });
+  }
 });
 
 // Listen for count updates and progress
