@@ -28,6 +28,4 @@ This extension:
 - Does not use analytics or tracking
 - Only requires necessary permissions
 
-[View Privacy Policy](https://[your-username].github.io/youtube-easy-unsubscribe/privacy-policy.html)
-
-## Development
+[View Privacy Policy](https://jceg.github.io/youtube-easy-unsubscribe/privacy-policy.html)
