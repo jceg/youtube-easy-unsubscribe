@@ -29,3 +29,12 @@ This extension:
 - Only requires necessary permissions
 
 [View Privacy Policy](https://jceg.github.io/youtube-easy-unsubscribe/privacy-policy.html)
+
+
+## License
+MIT License - see [LICENSE](LICENSE) for details
+
+## Support
+<a href="https://www.buymeacoffee.com/onemission" target="_blank">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="40">
+</a>
