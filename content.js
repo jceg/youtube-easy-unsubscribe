@@ -106,3 +106,21 @@ observer.observe(document.body, {
   childList: true,
   subtree: true
 });
+
+// Add this function
+function saveChannelsForLater() {
+  if (selectedChannels.size > 0) {
+    const channelsToSave = Array.from(selectedChannels).map(channel => ({
+      name: channel.querySelector('#channel-title').textContent,
+      url: channel.querySelector('#channel-title').href
+    }));
+    
+    chrome.runtime.sendMessage({
+      action: 'saveForLater',
+      channels: channelsToSave
+    });
+  }
+}
+
+// Add window unload listener
+window.addEventListener('unload', saveChannelsForLater);

@@ -1,206 +1,234 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>YouTube Easy Unsubscribe</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      width: 300px;
-      padding: 20px;
-      font-family: 'Inter', sans-serif;
-      background-color: #ffffff;
-      margin: 0;
-    }
+    <title>YouTube Easy Unsubscribe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            width: 300px;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+        }
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-    h3 {
-      color: #030303;
-      font-size: 18px;
-      font-weight: 600;
-      margin: 0;
-      text-align: center;
-    }
+        h3 {
+            color: #030303;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+            text-align: center;
+        }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
-    }
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
 
-    #toggleMode {
-      background-color: #f2f2f2;
-      color: #030303;
-    }
+        #toggleMode {
+            background-color: #f2f2f2;
+            color: #030303;
+        }
 
-    #toggleMode:hover {
-      background-color: #e5e5e5;
-    }
+        #toggleMode:hover {
+            background-color: #e5e5e5;
+        }
 
-    #unsubscribe {
-      background-color: #ff0000;
-      color: white;
-    }
+        #unsubscribe {
+            background-color: #ff0000;
+            color: white;
+        }
 
-    #unsubscribe:hover {
-      background-color: #cc0000;
-    }
+        #unsubscribe:hover {
+            background-color: #cc0000;
+        }
 
-    .stats {
-      font-size: 12px;
-      color: #606060;
-      text-align: center;
-      padding: 8px;
-      background-color: #f8f8f8;
-      border-radius: 6px;
-    }
+        .stats {
+            font-size: 12px;
+            color: #606060;
+            text-align: center;
+            padding: 8px;
+            background-color: #f8f8f8;
+            border-radius: 6px;
+        }
 
-    .button-ripple {
-      position: absolute;
-      border-radius: 50%;
-      background-color: rgba(255, 255, 255, 0.3);
-      transform: scale(0);
-      animation: ripple 0.6s linear;
-      pointer-events: none;
-    }
+        .button-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
 
-    @keyframes ripple {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
 
-    .progress-container {
-      display: none;
-      margin-top: 12px;
-    }
+        .progress-container {
+            display: none;
+            margin-top: 12px;
+        }
 
-    .progress-bar {
-      width: 100%;
-      height: 4px;
-      background: #f0f0f0;
-      border-radius: 2px;
-      overflow: hidden;
-    }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #f0f0f0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
 
-    .progress-fill {
-      width: 0%;
-      height: 100%;
-      background: #065fd4;
-      transition: width 0.3s ease;
-    }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #065fd4;
+            transition: width 0.3s ease;
+        }
 
-    .progress-text {
-      text-align: center;
-      font-size: 12px;
-      color: #606060;
-      margin-top: 8px;
-    }
+        .progress-text {
+            text-align: center;
+            font-size: 12px;
+            color: #606060;
+            margin-top: 8px;
+        }
 
-    .completion-message {
-      text-align: center;
-      margin-top: 12px;
-      display: none;
-    }
+        .completion-message {
+            text-align: center;
+            margin-top: 12px;
+            display: none;
+        }
 
-    .checkmark {
-      width: 40px;
-      height: 40px;
-    }
+        .checkmark {
+            width: 40px;
+            height: 40px;
+        }
 
-    .checkmark__circle {
-      stroke: #4CAF50;
-      stroke-width: 2;
-      stroke-dasharray: 166;
-      stroke-dashoffset: 166;
-      animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-    }
+        .checkmark__circle {
+            stroke: #4CAF50;
+            stroke-width: 2;
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
 
-    .checkmark__check {
-      stroke: #4CAF50;
-      stroke-width: 2;
-      stroke-dasharray: 48;
-      stroke-dashoffset: 48;
-      animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
-    }
+        .checkmark__check {
+            stroke: #4CAF50;
+            stroke-width: 2;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
 
-    @keyframes stroke {
-      100% {
-        stroke-dashoffset: 0;
-      }
-    }
+        @keyframes stroke {
+            100% {
+                stroke-dashoffset: 0;
+            }
+        }
 
-    .coffee-container {
-      margin-top: 16px;
-      text-align: center;
-      border-top: 1px solid #f0f0f0;
-      padding-top: 16px;
-    }
+        .coffee-container {
+            margin-top: 16px;
+            text-align: center;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 16px;
+        }
 
-    .coffee-container img {
-      height: 40px;
-      transition: transform 0.2s ease;
-    }
+        .coffee-container img {
+            height: 40px;
+            transition: transform 0.2s ease;
+        }
 
-    .coffee-container img:hover {
-      transform: scale(1.05);
-    }
+        .coffee-container img:hover {
+            transform: scale(1.05);
+        }
 
-    .completion-message p {
-      margin: 8px 0 0 0;
-      color: #4CAF50;
-      font-weight: 500;
-    }
-  </style>
+        .completion-message p {
+            margin: 8px 0 0 0;
+            color: #4CAF50;
+            font-weight: 500;
+        }
+
+        .saved-channels {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .secondary-button {
+            background-color: #856404;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: none;
+            margin-left: 8px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
+<div class="container">
     <h3>YouTube Easy Unsubscribe</h3>
     <button id="toggleMode">Toggle Selection Mode</button>
     <button id="unsubscribe">Unsubscribe Selected</button>
-    
+
     <div class="stats">
-      Selected: <span id="selectedCount">0</span> channels
+        Selected: <span id="selectedCount">0</span> channels
+    </div>
+
+    <div class="saved-channels" style="display: none;">
+        <div class="warning-message">
+            You have <span id="savedCount">0</span> channels pending to unsubscribe.
+            <button id="processSaved" class="secondary-button">Process Now</button>
+        </div>
     </div>
 
     <div class="progress-container">
-      <div class="progress-bar">
-        <div class="progress-fill"></div>
-      </div>
-      <div class="progress-text">
-        Unsubscribing... <span id="progress-count">0</span>/<span id="total-count">0</span>
-      </div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <div class="progress-text">
+            Unsubscribing... <span id="progress-count">0</span>/<span id="total-count">0</span>
+        </div>
     </div>
 
     <div class="completion-message">
-      <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-      </svg>
-      <p>Successfully unsubscribed!</p>
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+        <p>Successfully unsubscribed!</p>
     </div>
 
     <div class="coffee-container">
-      <a href="https://www.buymeacoffee.com/YourUsername" target="_blank">
-        <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee">
-      </a>
+        <a href="https://www.buymeacoffee.com/onemission" target="_blank">
+            <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee">
+        </a>
     </div>
-  </div>
-  <script src="popup.js"></script>
+</div>
+<script src="popup.js"></script>
 </body>
 </html>
