@@ -1,0 +1,17 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="128" height="128" rx="24" fill="#FF0000"/>
+    
+    <!-- Motion Arc -->
+    <path d="M90 20C70 30 60 40 50 60" stroke="white" stroke-width="4" stroke-linecap="round" stroke-dasharray="4 4"/>
+    
+    <!-- Channel Avatar (with perspective) -->
+    <g transform="translate(40,40) rotate(-45) skewX(-10)">
+        <rect width="32" height="32" rx="16" fill="white"/>
+        <path d="M16 8L24 16L16 24V8Z" fill="#FF0000"/>
+    </g>
+    
+    <!-- Trash Can (perspective) -->
+    <path d="M88 68H64V64C64 62.9 63.1 62 62 62H58C56.9 62 56 62.9 56 64V68H32C30.9 68 30 68.9 30 70V72H90V70C90 68.9 89.1 68 88 68Z" fill="white"/>
+    <path d="M34 116C34 117.1 34.9 118 36 118H84C85.1 118 86 117.1 86 116V76H34V116ZM44 84H48V110H44V84ZM56 84H60V110H56V84ZM68 84H72V110H68V84Z" fill="white"/>
+</svg>
