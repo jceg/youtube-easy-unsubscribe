@@ -64,10 +64,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   checkSavedChannels();
   
   // Check for pending completion message
-  chrome.storage.local.get(['completionPending'], (result) => {
+  chrome.storage.local.get(['completionPending', 'completionTimestamp'], (result) => {
       if (result.completionPending) {
-          showCompletion();
-          chrome.storage.local.remove('completionPending');
+          const timeSinceCompletion = Date.now() - (result.completionTimestamp || 0);
+          // Show completion message if it completed within the last minute
+          if (timeSinceCompletion < 60000) {
+              showCompletion();
+          }
+          chrome.storage.local.remove(['completionPending', 'completionTimestamp']);
       }
   });
   

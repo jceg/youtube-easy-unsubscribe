@@ -9,7 +9,10 @@ async function sendMessageToPopup(message) {
         } else {
             // Store completion state if popup is closed
             if (message.action === 'showCompletion') {
-                chrome.storage.local.set({ completionPending: true });
+                chrome.storage.local.set({ 
+                    completionPending: true,
+                    completionTimestamp: Date.now()
+                });
             }
         }
     } catch (error) {
