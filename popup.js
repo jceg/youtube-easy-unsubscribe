@@ -111,6 +111,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Add after your existing event listeners
+document.getElementById('processSaved').addEventListener('click', async (e) => {
+  createRipple(e);
+  await chrome.runtime.sendMessage({ action: 'processSaved' });
+  document.querySelector('.saved-channels').style.display = 'none';
+});
+
 // Add to your existing popup.js
 async function checkSavedChannels() {
   const response = await chrome.runtime.sendMessage({ action: 'getQueue' });
