@@ -11,7 +11,7 @@ A Chrome extension that makes it easy to unsubscribe from multiple YouTube chann
 - Clean and intuitive interface
 
 ## Installation
-1. Visit the [Chrome Web Store](pending to publish)
+1. Visit the [Chrome Web Store](https://chromewebstore.google.com/detail/youtube-easy-unsubscribe/ikilngaahgjmobhdndafcjjnaddofmjj)
 2. Click "Add to Chrome"
 3. Accept the permissions
 
