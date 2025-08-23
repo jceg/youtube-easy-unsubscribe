@@ -42,10 +42,26 @@ function updateProgressUI(data) {
 function showCompletion() {
     document.querySelector('.progress-container').style.display = 'none';
     document.querySelector('.completion-message').style.display = 'block';
+    
+    // Mark step 3 as completed
+    stepStates.step3Completed = true;
+    stepStates.isUnsubscribing = false;
+    updateStepStatus();
+    
+    // Extend popup height to accommodate completion message
+    document.body.style.minHeight = '620px';
 
     setTimeout(() => {
         document.querySelector('.completion-message').style.display = 'none';
-    }, 3000);
+        // Reset popup height
+        document.body.style.minHeight = '580px';
+        // Ephemeral checkmarks: clear step 2 and 3 after display so next session starts fresh
+        stepStates.step2Completed = false;
+        stepStates.step3Completed = false;
+        stepStates.isUnsubscribing = false;
+        saveStepStates();
+        updateStepStatus();
+    }, 5000); // Increased time to 5 seconds
 }
 
 async function checkSavedChannels() {
@@ -60,8 +76,165 @@ async function checkSavedChannels() {
     }
 }
 
+// Track step states
+let stepStates = {
+    step1Completed: false,
+    step2Completed: false,
+    step3Completed: false,
+    isUnsubscribing: false
+};
+
+// Function to update step status based on current page and selection state
+async function updateStepStatus() {
+    try {
+        const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+        
+        const step1 = document.querySelector('.step-1');
+        const step2 = document.querySelector('.step-2');
+        const step3 = document.querySelector('.step-3');
+        const openSubsBtn = document.getElementById('openSubscriptions');
+        const selectedCountElement = document.getElementById('selectedCount');
+        const selectedCount = parseInt(selectedCountElement?.textContent || '0');
+        
+        // If there is no active work and nothing selected, clear any stale completed flags
+        if (!currentProgress.isUnsubscribing && selectedCount === 0) {
+            stepStates.step2Completed = false;
+            stepStates.step3Completed = false;
+            stepStates.isUnsubscribing = false;
+            saveStepStates();
+        }
+        
+        // Remove all status classes first
+        [step1, step2, step3].forEach(step => {
+            step?.classList.remove('active', 'completed', 'disabled');
+        });
+        
+        if (tab && tab.url) {
+            if (tab.url.includes('youtube.com/feed/channels')) {
+                // User is on subscriptions page - complete step 1
+                step1.classList.add('completed');
+                stepStates.step1Completed = true;
+                openSubsBtn.textContent = 'Already on Subscriptions Page';
+                openSubsBtn.disabled = true;
+                openSubsBtn.style.opacity = '0.6';
+                
+                // Check step progression
+                if (stepStates.step3Completed) {
+                    // All done
+                    step2.classList.add('completed');
+                    step3.classList.add('completed');
+                } else if (stepStates.isUnsubscribing) {
+                    // Currently unsubscribing
+                    step2.classList.add('completed');
+                    step3.classList.add('active');
+                } else if (selectedCount > 0) {
+                    // Channels selected - ready for step 3
+                    step2.classList.add('active');
+                    step3.classList.add('active');
+                } else {
+                    // No channels selected - stay on step 2
+                    step2.classList.add('active');
+                    step3.classList.add('disabled');
+                }
+            } else if (tab.url.includes('youtube.com')) {
+                // User is on YouTube but not subscriptions page
+                step1.classList.add('active');
+                step2.classList.add('disabled');
+                step3.classList.add('disabled');
+                openSubsBtn.textContent = 'Open Subscriptions Page';
+                openSubsBtn.disabled = false;
+                openSubsBtn.style.opacity = '1';
+            } else {
+                // User is not on YouTube
+                step1.classList.add('active');
+                step2.classList.add('disabled');
+                step3.classList.add('disabled');
+                openSubsBtn.textContent = 'Open Subscriptions Page';
+                openSubsBtn.disabled = false;
+                openSubsBtn.style.opacity = '1';
+            }
+        }
+    } catch (error) {
+        console.log('Error updating step status:', error);
+    }
+}
+
+// Note: Chrome extension popups may close when creating new tabs
+// We'll handle this by using same-tab navigation when possible
+
+// Store step states in chrome storage for persistence
+async function saveStepStates() {
+    try {
+        await chrome.storage.local.set({ stepStates });
+    } catch (error) {
+        console.log('Error saving step states:', error);
+    }
+}
+
+async function loadStepStates() {
+    try {
+        const result = await chrome.storage.local.get(['stepStates']);
+        if (result.stepStates) {
+            stepStates = { ...stepStates, ...result.stepStates };
+        }
+    } catch (error) {
+        console.log('Error loading step states:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+    await loadStepStates();
     checkSavedChannels();
+    updateStepStatus();
+    
+    // Try to open the Side Panel for persistence (Chrome 114+)
+    try {
+        await chrome.runtime.sendMessage({ action: 'openSidePanel' });
+    } catch (e) {
+        // Ignore if unsupported
+    }
+
+    // Add event listener for Open Subscriptions button
+    document.getElementById('openSubscriptions')?.addEventListener('click', async (e) => {
+        if (e.target.disabled) return;
+        
+        // Find the main browser window (not this popup) and navigate there
+        try {
+            const windows = await chrome.windows.getAll({ populate: true });
+            let mainTab = null;
+            
+            // Look for a normal browser window (not popup)
+            for (const window of windows) {
+                if (window.type === 'normal' && window.tabs) {
+                    // Find the most recently active tab in normal windows
+                    for (const tab of window.tabs) {
+                        if (!mainTab || tab.active) {
+                            mainTab = tab;
+                            if (tab.active) break; // Prefer active tab
+                        }
+                    }
+                }
+            }
+            
+            if (mainTab) {
+                await chrome.tabs.update(mainTab.id, { 
+                    url: 'https://www.youtube.com/feed/channels',
+                    active: true 
+                });
+                // Focus the window containing that tab
+                await chrome.windows.update(mainTab.windowId, { focused: true });
+                console.log('Navigated to subscriptions page in main window');
+            } else {
+                // Fallback: create new tab in a new window
+                await chrome.windows.create({ 
+                    url: 'https://www.youtube.com/feed/channels',
+                    type: 'normal'
+                });
+            }
+        } catch (error) {
+            console.log('Error navigating to subscriptions:', error);
+        }
+    });
 
     // Check for pending completion message
     chrome.storage.local.get(['completionPending', 'completionTimestamp'], (result) => {
@@ -101,7 +274,12 @@ document.getElementById('toggleMode').addEventListener('click', async (e) => {
     createRipple(e);
     try {
         const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-        chrome.tabs.sendMessage(tab.id, {action: 'toggleMode'});
+        if (tab && tab.url && tab.url.includes('youtube.com/feed/channels')) {
+            chrome.tabs.sendMessage(tab.id, {action: 'toggleMode'});
+            console.log('Toggle mode message sent');
+        } else {
+            console.log('Not on YouTube subscriptions page');
+        }
     } catch (error) {
         console.log('Error toggling mode:', error);
     }
@@ -111,7 +289,17 @@ document.getElementById('unsubscribe').addEventListener('click', async (e) => {
     createRipple(e);
     try {
         const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-        chrome.tabs.sendMessage(tab.id, {action: 'unsubscribeSelected'});
+        if (tab && tab.url && tab.url.includes('youtube.com/feed/channels')) {
+            // Mark step 2 as completed and step 3 as active
+            stepStates.step2Completed = true;
+            stepStates.isUnsubscribing = true;
+            updateStepStatus();
+            
+            chrome.tabs.sendMessage(tab.id, {action: 'unsubscribeSelected'});
+            console.log('Unsubscribe message sent');
+        } else {
+            console.log('Not on YouTube subscriptions page');
+        }
     } catch (error) {
         console.log('Error starting unsubscribe:', error);
     }
@@ -122,6 +310,7 @@ document.getElementById('processSaved').addEventListener('click', async (e) => {
     try {
         await chrome.runtime.sendMessage({action: 'processSaved'});
         document.querySelector('.saved-channels').style.display = 'none';
+        console.log('Process saved channels message sent');
     } catch (error) {
         console.log('Error processing saved channels:', error);
     }
@@ -130,10 +319,15 @@ document.getElementById('processSaved').addEventListener('click', async (e) => {
 document.getElementById('selectAll').addEventListener('change', async (e) => {
     try {
         const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-        chrome.tabs.sendMessage(tab.id, {
-            action: 'selectAll',
-            selectAll: e.target.checked
-        });
+        if (tab && tab.url && tab.url.includes('youtube.com/feed/channels')) {
+            chrome.tabs.sendMessage(tab.id, {
+                action: 'selectAll',
+                selectAll: e.target.checked
+            });
+            console.log('Select all message sent:', e.target.checked);
+        } else {
+            console.log('Not on YouTube subscriptions page');
+        }
     } catch (error) {
         console.log('Error toggling select all:', error);
     }
@@ -164,24 +358,44 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             selectAllCheckbox.checked = false;
             selectAllCheckbox.indeterminate = false;
         }
+        // Update step status when selection changes
+        stepStates.step2Completed = false; // ensure step 2 not marked done just by selection
+        stepStates.step3Completed = false;
+        updateStepStatus();
+        saveStepStates(); // Save state changes
     } else if (message.action === 'toggleSelectionMode') {
         const selectAllContainer = document.querySelector('.select-all-container');
         if (message.selectionMode) {
             selectAllContainer.style.display = 'block';
+            // Update step status when selection mode is activated
+            updateStepStatus();
         } else {
             selectAllContainer.style.display = 'none';
             document.getElementById('selectAll').checked = false;
         }
+        saveStepStates(); // Save state changes
     } else if (message.action === 'updateProgress') {
         currentProgress = {
             isUnsubscribing: true,
             current: message.data.current,
             total: message.data.total
         };
+        stepStates.isUnsubscribing = true;
         updateProgressUI(message.data);
+        saveStepStates(); // Save state changes
     } else if (message.action === 'showCompletion') {
         currentProgress.isUnsubscribing = false;
         showCompletion();
+        saveStepStates(); // Save state changes
     }
     return true;
 });
+
+// Listen for tab updates to refresh step status (only when popup is open)
+if (chrome.tabs && chrome.tabs.onUpdated) {
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+        if (changeInfo.status === 'complete') {
+            setTimeout(updateStepStatus, 500);
+        }
+    });
+}

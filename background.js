@@ -1,22 +1,55 @@
 let unsubscribeQueue = [];
 let isProcessing = false;
 
-async function sendMessageToPopup(message) {
+// Enable the side panel to open when the action icon is clicked
+chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((error) => {
+    console.log('Side panel not supported, error:', error);
+});
+
+// Listen for tab activation events
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
     try {
-        const views = chrome.extension.getViews({ type: 'popup' });
-        if (views.length > 0) {
-            await chrome.runtime.sendMessage(message);
-        } else {
-            // Store completion state if popup is closed
-            if (message.action === 'showCompletion') {
-                chrome.storage.local.set({ 
-                    completionPending: true,
-                    completionTimestamp: Date.now()
-                });
-            }
+        const { tabId } = activeInfo;
+        // Enable the side panel only for the active tab
+        await chrome.sidePanel.setOptions({
+            tabId: tabId,
+            path: 'popup.html',
+            enabled: true
+        });
+    } catch (error) {
+        console.log('Side panel setOptions error:', error);
+    }
+});
+
+// Listen for tab update events to handle navigation within the same tab
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    try {
+        if (changeInfo.status === 'complete' && tab.active) {
+            // Re-enable the side panel for the active tab after navigation
+            await chrome.sidePanel.setOptions({
+                tabId: tabId,
+                path: 'popup.html',
+                enabled: true
+            });
         }
     } catch (error) {
-        console.log('Error sending message to popup:', error);
+        console.log('Side panel onUpdated error:', error);
+    }
+});
+
+async function sendMessageToPopup(message) {
+    try {
+        // Try to send message to any open popup windows
+        await chrome.runtime.sendMessage(message);
+    } catch (error) {
+        // If no popup is listening, store completion state for later
+        if (message.action === 'showCompletion') {
+            chrome.storage.local.set({ 
+                completionPending: true,
+                completionTimestamp: Date.now()
+            });
+        }
+        console.log('No popup listening, message stored if needed:', error);
     }
 }
 
@@ -38,6 +71,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // Forward completion message to popup
         sendMessageToPopup(message);
         sendResponse({success: true});
+    } else if (message.action === 'openSidePanel') {
+        try {
+            if (chrome.sidePanel && chrome.sidePanel.open) {
+                chrome.sidePanel.open({ windowId: sender?.tab?.windowId });
+            }
+            sendResponse({ success: true });
+        } catch (error) {
+            sendResponse({ success: false, error: String(error) });
+        }
     }
     return true;
 });

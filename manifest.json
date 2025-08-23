@@ -11,7 +11,8 @@
   "permissions": [
     "activeTab",
     "storage",
-    "tabs"
+    "tabs",
+    "sidePanel"
   ],
   "background": {
     "service_worker": "background.js"
@@ -20,7 +21,10 @@
     "https://www.youtube.com/*"
   ],
   "action": {
-    "default_popup": "popup.html"
+    "default_title": "YouTube Easy Unsubscribe"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
   },
   "content_scripts": [
     {

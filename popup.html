@@ -7,17 +7,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
-            width: 300px;
-            padding: 20px;
+            width: 380px;
+            height: 580px;
+            padding: 12px;
             font-family: 'Inter', sans-serif;
             background-color: #ffffff;
-            margin: 0;
+            margin: 0 auto; /* center horizontally when opened as a full page/window */
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        html, body { height: 100%; }
+
+        /* When opened in a larger window/tab, keep the UI centered and tidy */
+        @media (min-width: 600px) {
+            body { 
+                margin-top: 12px; 
+                margin-bottom: 24px;
+            }
         }
 
         .container {
             display: flex;
             flex-direction: column;
             gap: 12px;
+            padding-bottom: 20px;
         }
 
         h3 {
@@ -30,16 +44,21 @@
 
         button {
             width: 100%;
-            padding: 12px;
+            height: 40px;
+            padding: 10px 14px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-family: 'Inter', sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #toggleMode {
@@ -61,12 +80,13 @@
         }
 
         .stats {
-            font-size: 12px;
+            font-size: 11px;
             color: #606060;
             text-align: center;
-            padding: 8px;
+            padding: 6px;
             background-color: #f8f8f8;
-            border-radius: 6px;
+            border-radius: 4px;
+            margin: 4px 0;
         }
 
         .button-ripple {
@@ -215,21 +235,258 @@
         .select-all-label span {
             user-select: none;
         }
+
+        /* Step-by-step guide styling */
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .subtitle {
+            font-size: 11px;
+            color: #606060;
+            margin: 2px 0 0 0;
+        }
+
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex: 1;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #e0e0e0;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .step.active {
+            border-left-color: #065fd4;
+            background: #f0f7ff;
+        }
+
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: #e0e0e0;
+            color: #606060;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step.active .step-number {
+            background: #065fd4;
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .step.completed::after {
+            content: '';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23ffffff" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            border: 2px solid #4CAF50;
+        }
+
+        .step.disabled {
+            opacity: 0.5;
+        }
+
+        .step.disabled button {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content h4 {
+            margin: 0 0 2px 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #030303;
+        }
+
+        .step-content p {
+            margin: 0 0 4px 0;
+            font-size: 10px;
+            color: #606060;
+            line-height: 1.3;
+        }
+
+        .primary-button {
+            background-color: #065fd4;
+            color: white;
+            height: 36px;
+            margin-top: 2px;
+        }
+
+        .primary-button:hover {
+            background-color: #0547a0;
+        }
+
+        /* Support section styling */
+        .support-section {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .support-section h4 {
+            margin: 0 0 6px 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #030303;
+            text-align: center;
+        }
+
+        .support-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .support-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .support-btn::before {
+            content: '';
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .github-btn::before {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>');
+        }
+
+        .review-btn::before {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>');
+        }
+
+        .coffee-btn::before {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="black" viewBox="0 0 24 24"><path d="M2,21V19H20V21H2M20,8V5H18V8H20M20,3A2,2 0 0,1 22,5V8A2,2 0 0,1 20,10H18V13A4,4 0 0,1 14,17H8A4,4 0 0,1 4,13V3H20M16,5H6V13A2,2 0 0,0 8,15H14A2,2 0 0,0 16,13V5Z"/></svg>');
+        }
+
+        .github-btn {
+            background: #24292e;
+            color: white;
+        }
+
+        .github-btn:hover {
+            background: #1a1e22;
+        }
+
+        .review-btn {
+            background: #4285f4;
+            color: white;
+        }
+
+        .review-btn:hover {
+            background: #3367d6;
+        }
+
+        .coffee-btn {
+            background: #ffdd00;
+            color: #000;
+        }
+
+        .coffee-btn:hover {
+            background: #ffcd00;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h3>YouTube Easy Unsubscribe</h3>
-    <button id="toggleMode">Toggle Selection Mode</button>
-    <button id="unsubscribe">Unsubscribe Selected</button>
-
-    <div class="select-all-container" style="display: none;">
-        <label class="select-all-label">
-            <input type="checkbox" id="selectAll">
-            <span>Select All Channels</span>
-        </label>
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <h3>YouTube Easy Unsubscribe</h3>
+        <p class="subtitle">Easily manage your YouTube subscriptions</p>
     </div>
 
+    <!-- Step-by-step guide -->
+    <div class="steps-container">
+        <div class="step step-1">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h4>Go to Subscriptions</h4>
+                <p>Visit your YouTube subscriptions page</p>
+                <button id="openSubscriptions" class="primary-button">
+                    Open Subscriptions Page
+                </button>
+            </div>
+        </div>
+        
+        <div class="step step-2">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h4>Select Channels</h4>
+                <p>Toggle selection mode and choose channels to unsubscribe</p>
+                <button id="toggleMode">Toggle Selection Mode</button>
+                
+                <div class="select-all-container" style="display: none;">
+                    <label class="select-all-label">
+                        <input type="checkbox" id="selectAll">
+                        <span>Select All Channels</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="step step-3">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h4>Unsubscribe</h4>
+                <p>Process selected channels or manage saved progress</p>
+                <button id="unsubscribe">Unsubscribe Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats and saved channels -->
     <div class="stats">
         Selected: <span id="selectedCount">0</span> channels
     </div>
@@ -241,6 +498,7 @@
         </div>
     </div>
 
+    <!-- Progress and completion -->
     <div class="progress-container">
         <div class="progress-bar">
             <div class="progress-fill"></div>
@@ -258,10 +516,20 @@
         <p>Successfully unsubscribed!</p>
     </div>
 
-    <div class="coffee-container">
-        <a href="https://www.buymeacoffee.com/onemission" target="_blank">
-            <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee">
-        </a>
+    <!-- Support Section -->
+    <div class="support-section">
+        <h4>Support the Project</h4>
+        <div class="support-buttons">
+            <a href="https://github.com/jceg/youtube-easy-unsubscribe" target="_blank" class="support-btn github-btn">
+                Star on GitHub
+            </a>
+            <a href="https://chromewebstore.google.com/detail/youtube-easy-unsubscribe/ikilngaahgjmobhdndafcjjnaddofmjj" target="_blank" class="support-btn review-btn">
+                Leave a Review
+            </a>
+            <a href="https://www.buymeacoffee.com/onemission" target="_blank" class="support-btn coffee-btn">
+                Buy Me a Coffee
+            </a>
+        </div>
     </div>
 </div>
 <script src="popup.js"></script>
