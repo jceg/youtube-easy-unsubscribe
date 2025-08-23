@@ -71,15 +71,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // Forward completion message to popup
         sendMessageToPopup(message);
         sendResponse({success: true});
-    } else if (message.action === 'openSidePanel') {
-        try {
-            if (chrome.sidePanel && chrome.sidePanel.open) {
-                chrome.sidePanel.open({ windowId: sender?.tab?.windowId });
-            }
-            sendResponse({ success: true });
-        } catch (error) {
-            sendResponse({ success: false, error: String(error) });
-        }
     }
     return true;
 });

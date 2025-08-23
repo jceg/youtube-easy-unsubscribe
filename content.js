@@ -235,6 +235,14 @@ observer.observe(document.body, {
     subtree: true
 });
 
-window.addEventListener('unload', saveChannelsForLater);
+// Use visibilitychange instead of unload to comply with permissions policy
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        saveChannelsForLater();
+    }
+});
+
+// Also add periodic auto-save for reliability
+setInterval(saveChannelsForLater, 30000); // Save every 30 seconds
 
 addCheckboxesToSubscribeButtons();

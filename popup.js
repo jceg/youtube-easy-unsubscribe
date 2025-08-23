@@ -191,12 +191,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkSavedChannels();
     updateStepStatus();
     
-    // Try to open the Side Panel for persistence (Chrome 114+)
-    try {
-        await chrome.runtime.sendMessage({ action: 'openSidePanel' });
-    } catch (e) {
-        // Ignore if unsupported
-    }
+    // Side panel opens automatically via openPanelOnActionClick behavior
+    // No need to manually trigger it here
 
     // Add event listener for Open Subscriptions button
     document.getElementById('openSubscriptions')?.addEventListener('click', async (e) => {
