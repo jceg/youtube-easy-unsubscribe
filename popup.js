@@ -70,6 +70,15 @@ async function checkSavedChannels() {
         if (response.queue && response.queue.length > 0) {
             document.querySelector('.saved-channels').style.display = 'block';
             document.getElementById('savedCount').textContent = response.queue.length;
+            
+            // If we have pending channels, mark step 2 as completed since channels were already selected
+            if (!stepStates.isUnsubscribing) {
+                stepStates.step2Completed = true;
+                saveStepStates();
+                updateStepStatus();
+            }
+        } else {
+            document.querySelector('.saved-channels').style.display = 'none';
         }
     } catch (error) {
         console.log('Error checking saved channels:', error);
@@ -191,6 +200,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     checkSavedChannels();
     updateStepStatus();
     
+    // Periodically check for saved channels to keep the card visible across tabs
+    setInterval(checkSavedChannels, 5000); // Check every 5 seconds
+    
     // Side panel opens automatically via openPanelOnActionClick behavior
     // No need to manually trigger it here
 
@@ -308,11 +320,77 @@ document.getElementById('unsubscribe').addEventListener('click', async (e) => {
 document.getElementById('processSaved').addEventListener('click', async (e) => {
     createRipple(e);
     try {
-        await chrome.runtime.sendMessage({action: 'processSaved'});
-        document.querySelector('.saved-channels').style.display = 'none';
-        console.log('Process saved channels message sent');
+        // First, open/navigate to YouTube subscriptions page
+        const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+        
+        if (!tab.url || !tab.url.includes('youtube.com/feed/channels')) {
+            // Navigate to subscriptions page first
+            await chrome.tabs.update(tab.id, { 
+                url: 'https://www.youtube.com/feed/channels'
+            });
+            
+            // Wait a moment for the page to load before processing
+            setTimeout(async () => {
+                try {
+                    await chrome.runtime.sendMessage({action: 'processSaved'});
+                    document.querySelector('.saved-channels').style.display = 'none';
+                    
+                    // Update step states to show we're resuming
+                    // Step 1 is completed (we navigated to subscriptions page)
+                    stepStates.step1Completed = true;
+                    // Step 2 is completed (channels were already selected)
+                    stepStates.step2Completed = true;
+                    // Step 3 is now active (we're unsubscribing)
+                    stepStates.isUnsubscribing = true;
+                    updateStepStatus();
+                    saveStepStates();
+                    
+                    console.log('Resumed unsubscription process');
+                } catch (error) {
+                    console.log('Error resuming unsubscription:', error);
+                }
+            }, 2000); // Wait 2 seconds for page load
+        } else {
+            // Already on subscriptions page, process immediately
+            await chrome.runtime.sendMessage({action: 'processSaved'});
+            document.querySelector('.saved-channels').style.display = 'none';
+            
+            // Update step states to show we're resuming
+            // Step 1 is completed (we're on subscriptions page)
+            stepStates.step1Completed = true;
+            // Step 2 is completed (channels were already selected)
+            stepStates.step2Completed = true;
+            // Step 3 is now active (we're unsubscribing)
+            stepStates.isUnsubscribing = true;
+            updateStepStatus();
+            saveStepStates();
+            
+            console.log('Resumed unsubscription process');
+        }
     } catch (error) {
         console.log('Error processing saved channels:', error);
+    }
+});
+
+document.getElementById('dismissSaved').addEventListener('click', async (e) => {
+    createRipple(e);
+    try {
+        // Clear the saved queue in background
+        await chrome.runtime.sendMessage({action: 'clearQueue'});
+        
+        // Hide the saved channels message
+        document.querySelector('.saved-channels').style.display = 'none';
+        
+        // Reset step states to allow fresh start
+        stepStates.step2Completed = false;
+        stepStates.step3Completed = false;
+        stepStates.isUnsubscribing = false;
+        updateStepStatus();
+        saveStepStates();
+        
+        console.log('Dismissed pending unsubscriptions - ready for fresh start');
+    } catch (error) {
+        console.log('Error dismissing saved channels:', error);
     }
 });
 

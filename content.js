@@ -206,6 +206,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ success });
         });
         return true;
+    } else if (message.action === 'processSavedChannels') {
+        processSavedChannels(message.channels);
+        sendResponse({ success: true });
     } else if (message.action === 'getProgress') {
         chrome.storage.local.get(['unsubscribeState'], (result) => {
             if (result.unsubscribeState) {
@@ -244,5 +247,79 @@ document.addEventListener('visibilitychange', () => {
 
 // Also add periodic auto-save for reliability
 setInterval(saveChannelsForLater, 30000); // Save every 30 seconds
+
+// Process saved channels for resume functionality
+async function processSavedChannels(savedChannels) {
+    if (!savedChannels || savedChannels.length === 0) return;
+    
+    isUnsubscribing = true;
+    const totalCount = savedChannels.length;
+    let processedCount = 0;
+    let successCount = 0;
+    
+    // Send initial progress
+    chrome.runtime.sendMessage({
+        action: 'updateProgress',
+        data: { current: processedCount, total: totalCount, show: true }
+    });
+    
+    for (const savedChannel of savedChannels) {
+        try {
+            // Find the channel on the current page by name
+            const channelElements = document.querySelectorAll('ytd-channel-renderer');
+            let foundChannel = null;
+            
+            for (const element of channelElements) {
+                const channelTitle = element.querySelector('#channel-title');
+                if (channelTitle && channelTitle.textContent.trim() === savedChannel.name.trim()) {
+                    foundChannel = element;
+                    break;
+                }
+            }
+            
+            if (foundChannel) {
+                // Find the subscribe button for this channel
+                const subscribeButton = foundChannel.querySelector('ytd-subscribe-button-renderer button');
+                if (subscribeButton && subscribeButton.textContent.includes('Subscribed')) {
+                    // Click unsubscribe
+                    subscribeButton.click();
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    // Confirm unsubscribe
+                    const confirmButton = document.querySelector('yt-confirm-dialog-renderer #confirm-button button');
+                    if (confirmButton) {
+                        confirmButton.click();
+                        successCount++;
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                } else {
+                    console.log(`Channel ${savedChannel.name} - subscribe button not found or already unsubscribed`);
+                }
+            } else {
+                console.log(`Channel ${savedChannel.name} not found on page - skipping`);
+            }
+            
+        } catch (error) {
+            console.error(`Error processing channel ${savedChannel.name}:`, error);
+        }
+        
+        processedCount++;
+        
+        // Send progress update
+        chrome.runtime.sendMessage({
+            action: 'updateProgress',
+            data: { current: processedCount, total: totalCount }
+        });
+        
+        // Wait between channels
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+    
+    // Process complete
+    isUnsubscribing = false;
+    chrome.runtime.sendMessage({ action: 'showCompletion' });
+    
+    console.log(`Processed ${processedCount} channels, successfully unsubscribed from ${successCount}`);
+}
 
 addCheckboxesToSubscribeButtons();

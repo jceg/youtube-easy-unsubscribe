@@ -18,8 +18,9 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23065fd4" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
-    transition: all 0.2s ease-in-out;
+    /* Gray trash icon (unchecked state) */
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23757575" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
+    transition: all 0.3s ease-in-out;
 }
 
 .easy-unsub-checkbox:checked::before {
@@ -63,11 +64,18 @@ ytd-channel-renderer {
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
     .easy-unsub-checkbox::before {
-        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ffffff" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
+        /* Gray trash icon for dark mode (unchecked) */
+        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23aaaaaa" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
     }
     
     .easy-unsub-checkbox:checked::before {
+        /* Red trash icon for dark mode (checked) */
         background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ff0000" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
+    }
+    
+    .easy-unsub-checkbox:hover::before {
+        /* Darker gray for dark mode hover */
+        background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ffffff" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
     }
 }
 
@@ -106,14 +114,30 @@ ytd-channel-renderer {
     justify-content: center;
 }
 
+.easy-unsub-checkbox:hover::before {
+    /* Hover state - darker gray for unchecked */
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23424242" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
+    transform: translate(-50%, -50%) scale(1.05);
+}
+
 .easy-unsub-checkbox:hover {
-    border-color: rgba(6, 95, 212, 0.3);
-    background-color: rgba(6, 95, 212, 0.05);
+    border-color: rgba(117, 117, 117, 0.3);
+    background-color: rgba(117, 117, 117, 0.05);
     transform: translateY(-50%) scale(1.05);
 }
 
 .easy-unsub-checkbox:checked {
     border-color: rgba(255, 0, 0, 0.5);
+    background-color: rgba(255, 0, 0, 0.08);
+}
+
+.easy-unsub-checkbox:checked:hover::before {
+    /* Checked hover state - darker red */
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23cc0000" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
+}
+
+.easy-unsub-checkbox:checked:hover {
+    border-color: rgba(255, 0, 0, 0.4);
     background-color: rgba(255, 0, 0, 0.08);
 }
 

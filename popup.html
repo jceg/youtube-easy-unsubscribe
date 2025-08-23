@@ -188,24 +188,57 @@
         }
 
         .saved-channels {
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            color: #856404;
-            padding: 8px;
-            border-radius: 6px;
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #1565c0;
+            padding: 12px;
+            border-radius: 8px;
             margin-top: 8px;
             font-size: 12px;
+            text-align: center;
+        }
+
+        .saved-channels .resume-message {
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .resume-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .dismiss-button {
+            background-color: #757575;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .dismiss-button:hover {
+            background-color: #616161;
         }
 
         .secondary-button {
-            background-color: #856404;
+            background-color: #1565c0;
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 8px 16px;
             border: none;
-            margin-left: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
             cursor: pointer;
-            font-size: 11px;
+            transition: background-color 0.2s ease;
+        }
+
+        .secondary-button:hover {
+            background-color: #0d47a1;
         }
 
         .select-all-container {
@@ -560,9 +593,12 @@
     </div>
 
     <div class="saved-channels" style="display: none;">
-        <div class="warning-message">
-            You have <span id="savedCount">0</span> channels pending to unsubscribe.
-            <button id="processSaved" class="secondary-button">Process Now</button>
+        <div class="resume-message">
+            <span id="savedCount">0</span> unsubscriptions pending
+        </div>
+        <div class="resume-buttons">
+            <button id="processSaved" class="secondary-button">Resume</button>
+            <button id="dismissSaved" class="dismiss-button">Dismiss</button>
         </div>
     </div>
 

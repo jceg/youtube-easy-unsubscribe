@@ -63,6 +63,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.action === 'processSaved') {
         processQueue();
         sendResponse({success: true});
+    } else if (message.action === 'clearQueue') {
+        unsubscribeQueue = [];
+        chrome.storage.local.remove(['unsubscribeQueue']);
+        sendResponse({success: true});
     } else if (message.action === 'updateProgress') {
         // Forward progress updates to popup
         sendMessageToPopup(message);
@@ -79,52 +83,41 @@ async function processQueue() {
     if (isProcessing || unsubscribeQueue.length === 0) return;
     
     isProcessing = true;
-    const totalCount = unsubscribeQueue.length;
-    let progress = 0;
-
-    await sendMessageToPopup({
-        action: 'updateProgress',
-        data: { current: progress, total: totalCount, show: true }
-    });
-
-    for (const channel of unsubscribeQueue) {
-        try {
-            // Open channel in new tab
-            const tab = await chrome.tabs.create({ 
-                url: channel.url, 
-                active: false 
-            });
-            
-            // Wait for page load
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            
-            // Unsubscribe
-            await chrome.tabs.sendMessage(tab.id, { 
-                action: 'unsubscribeFromUrl' 
-            });
-            
-            // Wait for unsubscribe action
-            await new Promise(resolve => setTimeout(resolve, 3500));
-            
-            // Close tab
-            await chrome.tabs.remove(tab.id);
-            
-            progress++;
-            await sendMessageToPopup({
-                action: 'updateProgress',
-                data: { current: progress, total: totalCount }
-            });
-            
-            // Wait before next channel
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (error) {
-            console.error('Error processing channel:', error);
-        }
+    
+    // Find the subscriptions tab or create one
+    const tabs = await chrome.tabs.query({ url: '*://www.youtube.com/feed/channels*' });
+    let subscriptionsTab;
+    
+    if (tabs.length > 0) {
+        subscriptionsTab = tabs[0];
+        await chrome.tabs.update(subscriptionsTab.id, { active: true });
+    } else {
+        subscriptionsTab = await chrome.tabs.create({ 
+            url: 'https://www.youtube.com/feed/channels',
+            active: true 
+        });
+        // Wait for page load
+        await new Promise(resolve => setTimeout(resolve, 3000));
     }
-
-    unsubscribeQueue = [];
-    chrome.storage.local.set({ unsubscribeQueue });
-    await sendMessageToPopup({ action: 'showCompletion' });
+    
+    try {
+        // Send the saved channels to the content script to process
+        await chrome.tabs.sendMessage(subscriptionsTab.id, {
+            action: 'processSavedChannels',
+            channels: unsubscribeQueue
+        });
+        
+        // Clear the queue since we've handed it off to content script
+        unsubscribeQueue = [];
+        chrome.storage.local.remove(['unsubscribeQueue']);
+        
+    } catch (error) {
+        console.error('Error processing saved channels:', error);
+        await sendMessageToPopup({
+            action: 'showCompletion'
+        });
+    }
+    
     isProcessing = false;
 }
 
