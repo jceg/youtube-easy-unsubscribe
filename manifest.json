@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YouTube Easy Unsubscribe",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Easily unsubscribe from YouTube channels with checkboxes",
   "icons": {
     "16": "icons/icon16.png",
