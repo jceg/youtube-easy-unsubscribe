@@ -187,6 +187,34 @@
             cursor: pointer;
             font-size: 11px;
         }
+
+        .select-all-container {
+            background-color: #f8f8f8;
+            border-radius: 6px;
+            padding: 8px;
+            margin: 8px 0;
+        }
+
+        .select-all-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #030303;
+            font-weight: 500;
+        }
+
+        .select-all-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #065fd4;
+        }
+
+        .select-all-label span {
+            user-select: none;
+        }
     </style>
 </head>
 <body>
@@ -194,6 +222,13 @@
     <h3>YouTube Easy Unsubscribe</h3>
     <button id="toggleMode">Toggle Selection Mode</button>
     <button id="unsubscribe">Unsubscribe Selected</button>
+
+    <div class="select-all-container" style="display: none;">
+        <label class="select-all-label">
+            <input type="checkbox" id="selectAll">
+            <span>Select All Channels</span>
+        </label>
+    </div>
 
     <div class="stats">
         Selected: <span id="selectedCount">0</span> channels

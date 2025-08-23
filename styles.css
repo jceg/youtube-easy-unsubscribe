@@ -1,14 +1,7 @@
 .easy-unsub-checkbox {
-    position: absolute;
-    top: 50%;
-    left: -40px;
-    transform: translateY(-50%);
-    width: 24px;
-    height: 24px;
     z-index: 9999;
     cursor: pointer;
     display: none;
-    margin: 0;
     padding: 0;
     
     /* Hide the default checkbox */
@@ -21,19 +14,20 @@
     position: absolute;
     width: 24px;
     height: 24px;
+    /* Center the icon within the 28x28 container */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23065fd4" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
     transition: all 0.2s ease-in-out;
 }
 
 .easy-unsub-checkbox:checked::before {
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ff0000" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>');
-    transform: scale(1.1);
+    transform: translate(-50%, -50%) scale(1.1);
 }
 
-.easy-unsub-checkbox:hover {
-    transform: translateY(-50%) scale(1.1);
-    transition: transform 0.2s ease;
-}
+
 
 /* Add margin to the channel container to make space for checkbox */
 ytd-channel-renderer {
@@ -92,4 +86,50 @@ ytd-channel-renderer {
 #content-section.style-scope.ytd-channel-renderer {
     display: flex !important;
     align-items: center !important;
+}
+
+/* Enhanced checkbox visibility and interaction */
+.easy-unsub-checkbox {
+    position: absolute;
+    top: 50%;
+    left: -42px; /* Adjusted to center better */
+    transform: translateY(-50%);
+    border: 2px solid transparent;
+    border-radius: 6px;
+    /* Make the border area slightly larger than the icon */
+    width: 28px;
+    height: 28px;
+    box-sizing: border-box;
+    /* Center the actual icon within the border area */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.easy-unsub-checkbox:hover {
+    border-color: rgba(6, 95, 212, 0.3);
+    background-color: rgba(6, 95, 212, 0.05);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.easy-unsub-checkbox:checked {
+    border-color: rgba(255, 0, 0, 0.5);
+    background-color: rgba(255, 0, 0, 0.08);
+}
+
+/* Improved animation for bulk selection */
+.easy-unsub-checkbox.bulk-selected {
+    animation: bulkSelect 0.3s ease-out;
+}
+
+@keyframes bulkSelect {
+    0% {
+        transform: translateY(-50%) scale(1);
+    }
+    50% {
+        transform: translateY(-50%) scale(1.2);
+    }
+    100% {
+        transform: translateY(-50%) scale(1);
+    }
 }

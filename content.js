@@ -40,11 +40,18 @@ function toggleSelectionMode() {
     selectionMode = !selectionMode;
     document.querySelectorAll('.easy-unsub-checkbox').forEach(checkbox => {
         checkbox.style.display = selectionMode ? 'block' : 'none';
+        if (!selectionMode) {
+            checkbox.checked = false;
+        }
     });
     selectedChannels.clear();
     chrome.runtime.sendMessage({
         action: 'updateCount',
         count: 0
+    });
+    chrome.runtime.sendMessage({
+        action: 'toggleSelectionMode',
+        selectionMode: selectionMode
     });
 }
 
@@ -133,6 +140,41 @@ async function unsubscribeFromUrl() {
     }
 }
 
+function selectAllChannels(selectAll) {
+    const checkboxes = document.querySelectorAll('.easy-unsub-checkbox');
+    selectedChannels.clear();
+    
+    // If selecting all, add all channels to selectedChannels immediately
+    if (selectAll) {
+        checkboxes.forEach(checkbox => {
+            const channelElement = checkbox.closest('#content-section');
+            if (channelElement) {
+                selectedChannels.add(channelElement);
+            }
+        });
+    }
+    
+    // Update count immediately
+    chrome.runtime.sendMessage({
+        action: 'updateCount',
+        count: selectedChannels.size
+    });
+    
+    checkboxes.forEach((checkbox, index) => {
+        // Add staggered animation for visual feedback
+        setTimeout(() => {
+            checkbox.checked = selectAll;
+            if (selectAll) {
+                checkbox.classList.add('bulk-selected');
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    checkbox.classList.remove('bulk-selected');
+                }, 300);
+            }
+        }, index * 50); // Stagger by 50ms per checkbox
+    });
+}
+
 function saveChannelsForLater() {
     if (selectedChannels.size > 0) {
         const channelsToSave = Array.from(selectedChannels).map(channel => ({
@@ -156,6 +198,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: true });
     } else if (message.action === 'getSelectedCount') {
         sendResponse({ count: selectedChannels.size });
+    } else if (message.action === 'selectAll') {
+        selectAllChannels(message.selectAll);
+        sendResponse({ success: true });
     } else if (message.action === 'unsubscribeFromUrl') {
         unsubscribeFromUrl().then(success => {
             sendResponse({ success });

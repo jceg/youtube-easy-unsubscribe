@@ -127,6 +127,18 @@ document.getElementById('processSaved').addEventListener('click', async (e) => {
     }
 });
 
+document.getElementById('selectAll').addEventListener('change', async (e) => {
+    try {
+        const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+        chrome.tabs.sendMessage(tab.id, {
+            action: 'selectAll',
+            selectAll: e.target.checked
+        });
+    } catch (error) {
+        console.log('Error toggling select all:', error);
+    }
+});
+
 // Update count when popup opens
 chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
     if (tabs[0]) {
@@ -146,6 +158,20 @@ chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'updateCount') {
         document.getElementById('selectedCount').textContent = message.count;
+        // Update Select All checkbox state based on count
+        const selectAllCheckbox = document.getElementById('selectAll');
+        if (message.count === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+    } else if (message.action === 'toggleSelectionMode') {
+        const selectAllContainer = document.querySelector('.select-all-container');
+        if (message.selectionMode) {
+            selectAllContainer.style.display = 'block';
+        } else {
+            selectAllContainer.style.display = 'none';
+            document.getElementById('selectAll').checked = false;
+        }
     } else if (message.action === 'updateProgress') {
         currentProgress = {
             isUnsubscribing: true,
