@@ -1,5 +1,4 @@
-let unsubscribeQueue = [];
-let isProcessing = false;
+// Resume functionality removed - using tab close warning instead
 
 // Enable the side panel to open when the action icon is clicked
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((error) => {
@@ -54,20 +53,8 @@ async function sendMessageToPopup(message) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'saveForLater') {
-        unsubscribeQueue = message.channels;
-        chrome.storage.local.set({unsubscribeQueue});
-        sendResponse({success: true});
-    } else if (message.action === 'getQueue') {
-        sendResponse({queue: unsubscribeQueue});
-    } else if (message.action === 'processSaved') {
-        processQueue();
-        sendResponse({success: true});
-    } else if (message.action === 'clearQueue') {
-        unsubscribeQueue = [];
-        chrome.storage.local.remove(['unsubscribeQueue']);
-        sendResponse({success: true});
-    } else if (message.action === 'updateProgress') {
+    // Queue functionality removed - no longer using resume feature
+    if (message.action === 'updateProgress') {
         // Forward progress updates to popup
         sendMessageToPopup(message);
         sendResponse({success: true});
@@ -79,54 +66,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
 });
 
-async function processQueue() {
-    if (isProcessing || unsubscribeQueue.length === 0) return;
-    
-    isProcessing = true;
-    
-    // Find the subscriptions tab or create one
-    const tabs = await chrome.tabs.query({ url: '*://www.youtube.com/feed/channels*' });
-    let subscriptionsTab;
-    
-    if (tabs.length > 0) {
-        subscriptionsTab = tabs[0];
-        await chrome.tabs.update(subscriptionsTab.id, { active: true });
-    } else {
-        subscriptionsTab = await chrome.tabs.create({ 
-            url: 'https://www.youtube.com/feed/channels',
-            active: true 
-        });
-        // Wait for page load
-        await new Promise(resolve => setTimeout(resolve, 3000));
-    }
-    
-    try {
-        // Send the saved channels to the content script to process
-        await chrome.tabs.sendMessage(subscriptionsTab.id, {
-            action: 'processSavedChannels',
-            channels: unsubscribeQueue
-        });
-        
-        // Clear the queue since we've handed it off to content script
-        unsubscribeQueue = [];
-        chrome.storage.local.remove(['unsubscribeQueue']);
-        
-    } catch (error) {
-        console.error('Error processing saved channels:', error);
-        await sendMessageToPopup({
-            action: 'showCompletion'
-        });
-    }
-    
-    isProcessing = false;
-}
+// Track which tabs are currently unsubscribing
+let unsubscribingTabs = new Set();
 
-// Restore queue from storage on startup
-chrome.storage.local.get(['unsubscribeQueue'], (result) => {
-    if (result.unsubscribeQueue) {
-        unsubscribeQueue = result.unsubscribeQueue;
+// Listen for tab close attempts during unsubscription
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+    if (unsubscribingTabs.has(tabId)) {
+        console.log('Tab closed during unsubscription process');
+        unsubscribingTabs.delete(tabId);
     }
 });
+
+// Handle unsubscription start/stop tracking
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'startUnsubscribing' && sender.tab) {
+        unsubscribingTabs.add(sender.tab.id);
+        console.log('Started tracking unsubscription for tab:', sender.tab.id);
+    } else if (message.action === 'stopUnsubscribing' && sender.tab) {
+        unsubscribingTabs.delete(sender.tab.id);
+        console.log('Stopped tracking unsubscription for tab:', sender.tab.id);
+    }
+});
+
+// Queue storage removed - no longer using resume functionality
 
 // Handle tab updates
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
