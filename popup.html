@@ -354,19 +354,87 @@
             background-color: #0547a0;
         }
 
-        /* Support section styling */
-        .support-section {
+        /* Support accordion styling */
+        .support-accordion {
             margin-top: 8px;
-            padding-top: 8px;
             border-top: 1px solid #f0f0f0;
         }
 
-        .support-section h4 {
-            margin: 0 0 6px 0;
+        .accordion-toggle {
+            width: 100%;
+            padding: 12px 0;
+            background: none;
+            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #606060;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .accordion-toggle:hover {
+            color: #030303;
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 12px 8px;
+        }
+
+        .accordion-title {
             font-size: 12px;
             font-weight: 600;
-            color: #030303;
-            text-align: center;
+            transition: font-weight 0.2s ease;
+        }
+
+        .accordion-toggle:hover .accordion-title {
+            font-weight: 700;
+        }
+
+        .accordion-icon {
+            width: 16px;
+            height: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .accordion-icon::before {
+            content: '';
+            display: block;
+            width: 16px;
+            height: 16px;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23424242" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: all 0.2s ease;
+        }
+
+        .accordion-toggle:hover .accordion-icon {
+            transform: scale(1.2);
+        }
+
+        .accordion-toggle:hover .accordion-icon::before {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23065fd4" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>');
+        }
+
+        .accordion-toggle.expanded .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-toggle.expanded:hover .accordion-icon {
+            transform: rotate(180deg) scale(1.2);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .accordion-content.expanded {
+            max-height: 200px;
+            padding-bottom: 8px;
         }
 
         .support-buttons {
@@ -515,10 +583,15 @@
         </svg>
         <p>Successfully unsubscribed!</p>
     </div>
+</div>
 
-    <!-- Support Section -->
-    <div class="support-section">
-        <h4>Support the Project</h4>
+<!-- Support Accordion Section - At the very bottom -->
+<div class="support-accordion">
+    <button class="accordion-toggle" id="supportToggle">
+        <span class="accordion-title">Support the Project</span>
+        <span class="accordion-icon"></span>
+    </button>
+    <div class="accordion-content" id="supportContent">
         <div class="support-buttons">
             <a href="https://github.com/jceg/youtube-easy-unsubscribe" target="_blank" class="support-btn github-btn">
                 Star on GitHub

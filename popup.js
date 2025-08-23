@@ -183,6 +183,10 @@ async function loadStepStates() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize support accordion
+    await initializeSupportAccordion();
+    // Listen for accordion state changes from other tabs
+    setupAccordionSync();
     await loadStepStates();
     checkSavedChannels();
     updateStepStatus();
@@ -398,4 +402,80 @@ if (chrome.tabs && chrome.tabs.onUpdated) {
             setTimeout(updateStepStatus, 500);
         }
     });
+}
+
+// Setup accordion state synchronization across tabs
+function setupAccordionSync() {
+    // Listen for storage changes from other tabs/windows
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local' && changes.accordionExpanded) {
+            const toggle = document.getElementById('supportToggle');
+            const content = document.getElementById('supportContent');
+            
+            if (toggle && content) {
+                const newState = changes.accordionExpanded.newValue;
+                
+                if (newState) {
+                    // Expand
+                    content.classList.add('expanded');
+                    toggle.classList.add('expanded');
+                } else {
+                    // Collapse
+                    content.classList.remove('expanded');
+                    toggle.classList.remove('expanded');
+                }
+            }
+        }
+    });
+}
+
+// Support accordion functionality with state persistence
+async function initializeSupportAccordion() {
+    const toggle = document.getElementById('supportToggle');
+    const content = document.getElementById('supportContent');
+    
+    if (toggle && content) {
+        // Load saved accordion state
+        try {
+            const result = await chrome.storage.local.get(['accordionExpanded']);
+            const isExpanded = result.accordionExpanded || false;
+            
+            if (isExpanded) {
+                content.classList.add('expanded');
+                toggle.classList.add('expanded');
+            }
+        } catch (error) {
+            console.log('Error loading accordion state:', error);
+        }
+        
+        // Add click handler
+        toggle.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const isExpanded = content.classList.contains('expanded');
+            
+            if (isExpanded) {
+                // Collapse
+                content.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+                // Save collapsed state
+                try {
+                    await chrome.storage.local.set({ accordionExpanded: false });
+                } catch (error) {
+                    console.log('Error saving accordion state:', error);
+                }
+            } else {
+                // Expand
+                content.classList.add('expanded');
+                toggle.classList.add('expanded');
+                // Save expanded state
+                try {
+                    await chrome.storage.local.set({ accordionExpanded: true });
+                } catch (error) {
+                    console.log('Error saving accordion state:', error);
+                }
+            }
+        });
+    }
 }
