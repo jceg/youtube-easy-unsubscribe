@@ -25,18 +25,60 @@ function createRipple(event) {
 }
 
 function updateProgressUI(data) {
+    // Only update if there's an actual change to prevent flashing
+    if (currentProgressState.isVisible === data.show) {
+        return; // No change, don't update UI
+    }
+    
+    // Update tracking state
+    currentProgressState.isVisible = data.show;
+    
     const progressContainer = document.querySelector('.progress-container');
-    const progressFill = document.querySelector('.progress-fill');
-    const progressCount = document.getElementById('progress-count');
-    const totalCount = document.getElementById('total-count');
+    const resetButton = document.getElementById('resetProgress');
 
     if (data.show) {
         progressContainer.style.display = 'block';
+        resetButton.style.display = 'none'; // Hide reset button during normal operation
+    } else {
+        progressContainer.style.display = 'none';
+        resetButton.style.display = 'none';
     }
+}
 
-    progressCount.textContent = data.current;
-    totalCount.textContent = data.total;
-    progressFill.style.width = `${(data.current / data.total) * 100}%`;
+async function resetProgress() {
+    try {
+        // Clear storage state
+        await chrome.storage.local.set({
+            unsubscribeState: {
+                isUnsubscribing: false,
+                current: 0,
+                total: 0
+            }
+        });
+        
+        // Reset step states
+        stepStates.isUnsubscribing = false;
+        stepStates.step3Completed = false;
+        await saveStepStates();
+        
+        // Update UI
+        updateProgressUI({ show: false });
+        updateStepStatus();
+        
+        // Try to clear any stuck overlays in content script
+        const tabs = await chrome.tabs.query({url: '*://www.youtube.com/feed/channels*'});
+        for (const tab of tabs) {
+            try {
+                await chrome.tabs.sendMessage(tab.id, {action: 'clearStuckState'});
+            } catch (error) {
+                // Ignore errors - tab might not have content script
+            }
+        }
+        
+        console.log('Progress reset successfully');
+    } catch (error) {
+        console.error('Error resetting progress:', error);
+    }
 }
 
 function showCompletion() {
@@ -64,43 +106,7 @@ function showCompletion() {
     }, 5000); // Increased time to 5 seconds
 }
 
-async function checkUnsubscriptionProgress() {
-    try {
-        // Check ALL YouTube tabs for active unsubscription process
-        const tabs = await chrome.tabs.query({url: '*://www.youtube.com/feed/channels*'});
-        
-        for (const tab of tabs) {
-            try {
-                const response = await chrome.tabs.sendMessage(tab.id, {action: 'getProgress'});
-                if (response && response.isUnsubscribing) {
-                    // Found active unsubscription - show progress
-                    updateProgressUI({
-                        show: true,
-                        current: response.current,
-                        total: response.total
-                    });
-                    stepStates.isUnsubscribing = true;
-                    stepStates.step1Completed = true; // On subscriptions page
-                    stepStates.step2Completed = true; // Channels selected
-                    updateStepStatus();
-                    return; // Found active process, no need to check other tabs
-                }
-            } catch (error) {
-                // Tab might not have content script loaded, continue to next tab
-                continue;
-            }
-        }
-        
-        // No active unsubscription found in any tab
-        if (stepStates.isUnsubscribing) {
-            stepStates.isUnsubscribing = false;
-            updateStepStatus();
-        }
-        
-    } catch (error) {
-        // Ignore errors
-    }
-}
+// Removed buggy checkUnsubscriptionProgress - now only responds to direct messages
 
 // Track step states
 let stepStates = {
@@ -108,6 +114,11 @@ let stepStates = {
     step2Completed: false,
     step3Completed: false,
     isUnsubscribing: false
+};
+
+// Track current progress to prevent flashing
+let currentProgressState = {
+    isVisible: false
 };
 
 // Function to update step status based on current page and selection state
@@ -216,11 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadStepStates();
     updateStepStatus();
     
-    // Check for active unsubscription progress
-    checkUnsubscriptionProgress();
-    
-    // Periodically check for unsubscription progress across all tabs
-    setInterval(checkUnsubscriptionProgress, 3000); // Check every 3 seconds
+    // No periodic checking - only respond to messages to prevent flashing
     
     // Side panel opens automatically via openPanelOnActionClick behavior
     // No need to manually trigger it here
@@ -306,7 +313,7 @@ document.getElementById('toggleMode').addEventListener('click', async (e) => {
     try {
         const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
         if (tab && tab.url && tab.url.includes('youtube.com/feed/channels')) {
-            chrome.tabs.sendMessage(tab.id, {action: 'toggleMode'});
+        chrome.tabs.sendMessage(tab.id, {action: 'toggleMode'});
             console.log('Toggle mode message sent');
         } else {
             console.log('Not on YouTube subscriptions page');
@@ -326,7 +333,7 @@ document.getElementById('unsubscribe').addEventListener('click', async (e) => {
             stepStates.isUnsubscribing = true;
             updateStepStatus();
             
-            chrome.tabs.sendMessage(tab.id, {action: 'unsubscribeSelected'});
+        chrome.tabs.sendMessage(tab.id, {action: 'unsubscribeSelected'});
             console.log('Unsubscribe message sent');
         } else {
             console.log('Not on YouTube subscriptions page');
@@ -338,14 +345,19 @@ document.getElementById('unsubscribe').addEventListener('click', async (e) => {
 
 // Resume functionality removed - replaced with tab close warning
 
+document.getElementById('resetProgress').addEventListener('click', async (e) => {
+    createRipple(e);
+    await resetProgress();
+});
+
 document.getElementById('selectAll').addEventListener('change', async (e) => {
     try {
         const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
         if (tab && tab.url && tab.url.includes('youtube.com/feed/channels')) {
-            chrome.tabs.sendMessage(tab.id, {
-                action: 'selectAll',
-                selectAll: e.target.checked
-            });
+        chrome.tabs.sendMessage(tab.id, {
+            action: 'selectAll',
+            selectAll: e.target.checked
+        });
             console.log('Select all message sent:', e.target.checked);
         } else {
             console.log('Not on YouTube subscriptions page');
@@ -397,17 +409,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         saveStepStates(); // Save state changes
     } else if (message.action === 'updateProgress') {
-        currentProgress = {
-            isUnsubscribing: true,
-            current: message.data.current,
-            total: message.data.total
-        };
         stepStates.isUnsubscribing = true;
-        updateProgressUI(message.data);
+        updateProgressUI({ show: true }); // Show simple progress
         saveStepStates(); // Save state changes
     } else if (message.action === 'showCompletion') {
-        currentProgress.isUnsubscribing = false;
-        showCompletion();
+        stepStates.isUnsubscribing = false;
+        updateProgressUI({ show: false }); // Hide progress
+        showCompletion(); // Show green checkmark
         saveStepStates(); // Save state changes
     }
     return true;
